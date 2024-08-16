@@ -1,0 +1,106 @@
+<!-- blink/templates/blink/index.html -->
+<!DOCTYPE html>
+<html lang="en" style="background-color: darkcyan;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blink Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+        #camera-section {
+            display: none; /* Initially hidden */
+            margin: 20px 0;
+        }
+        #message-section {
+            margin-top: 20px;
+            font-size: 24px;
+            color: rgb(255, 0, 0);
+            display: none; /* Initially hidden */
+        }
+        #timer-section {
+            font-size: 30px;
+            color: red;
+            display: none; /* Initially hidden */
+        }
+        video {
+            width: 80%;
+            height: auto;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>👁️ Blink Detection System 👁️</h1>
+    <form id="blink-form" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Start Detection</button>
+    </form>
+
+    <div id="camera-section">
+        <h2>Blink Your Eye's</h2>
+        <img id="video" src="" alt="Camera Feed">
+        <div id="timer-section">30</div>
+    </div>
+
+    <div id="message-section">
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+        document.getElementById('blink-form').onsubmit = async function(event) {
+        event.preventDefault();
+        const formData = new FormData(this);
+        const response = await fetch('', {
+            method: 'POST',
+            body: formData
+        });
+        const result = await response.json();
+        if (result.status === 'success') {
+            document.getElementById('camera-section').style.display = 'block'; // Show camera section
+            startVideoFeed();
+            startCountdown(30);  // Start countdown for 30 seconds
+
+            // Fetch final message after 30 seconds
+            setTimeout(async () => {
+                const messageResponse = await fetch('/get_final_message/');
+                const messageResult = await messageResponse.json();
+                document.getElementById('message-section').style.display = 'block'; // Show message section
+                document.getElementById('message').innerText = messageResult.message; // Display final message
+            }, 30000); // Fetch message after 30 seconds
+        } else {
+            document.getElementById('message').innerText = result.message; // Display error message
+        }
+    };
+
+        function startVideoFeed() {
+            const video = document.getElementById('video');
+            video.src = '/video_feed/';
+            video.style.display = 'inline';
+        }
+
+        function startCountdown(duration) {
+            const timerDisplay = document.getElementById('timer-section');
+            timerDisplay.style.display = 'block';
+            let timeLeft = duration;
+
+            const countdownInterval = setInterval(() => {
+                timerDisplay.innerText = timeLeft;
+                timeLeft--;
+
+                if (timeLeft < 0) {
+                    clearInterval(countdownInterval);
+                    timerDisplay.innerText = '';  // Clear the timer display
+                    document.getElementById('message-section').style.display = 'block'; // Show message section
+                    // document.getElementById('message').innerText = 'Thank you, your eyes are healthy.';  // Final message
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

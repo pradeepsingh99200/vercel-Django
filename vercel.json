@@ -1,0 +1,13 @@
+{
+    "builds":[{
+        "src":"BlinkDetection/wsgi.py",
+        "use":"@vercel/pthon",
+        "config":{"maxLambdaSize" :"15mb" , "runtime":"python3.11.3"}
+    }],
+    "routes":[
+        {
+            "src":"/(.*)",
+            "dest": "BlinkDetection/wsgi.py"
+        }
+    ]
+}
